@@ -1,0 +1,1 @@
+root - INFO - (SUCCESS: import_data(data/test_data.csv) -> msg: dataframe read successfully -> df: {'x': {0: 1, 1: 2, 2: 3, 3: 4, 4: 5}, 'y': {0: 5, 1: 3, 2: 4, 3: 5, 4: 6}, 'z': {0: 'high', 1: 'low', 2: 'high', 3: 'low', 4: 'high'}}
