@@ -1,6 +1,6 @@
 import os
 import logging as log
-from churn_library import (import_data,create_visual_eda)
+from churn_library import (import_data,create_visual_eda,create_stats_info,PlotNotAllowedError,CreateVisualEdaError)
 from loguru import logger
 import pytest
 
@@ -26,6 +26,23 @@ class TestPredictChurn:
 		"""Test create_visual_eda method"""
 		df = import_data(df_path='data/test_data.csv')
 		assert create_visual_eda(plot_type='histogram', df=df,col='x')
+
+	def test_create_visual_eda_not_working_wrong_plot_type(self):
+		"""Invalid path"""
+		with pytest.raises(PlotNotAllowedError):
+			df = import_data(df_path='data/test_data.csv')
+			create_visual_eda(plot_type='line-plos-2d', df=df,col='x')
+
+	def test_create_visual_eda_not_working_exception(self):
+		"""Invalid path"""
+		with pytest.raises(CreateVisualEdaError):
+			df = import_data(df_path='data/test_data.csv')
+			create_visual_eda(plot_type='line-plos-2d', df=df,col='x')
+
+	def test_create_stats_info(self):
+		"""Test create_stats_info"""
+		df = import_data(df_path='data/test_data.csv')
+		assert create_stats_info(df=df,stats_calc=True)
 
     # def test_data_loading(self):
     #     """Loads csv file"""
