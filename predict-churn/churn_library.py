@@ -5,6 +5,8 @@ date: May 2022
 # library doc string
 # import libraries
 import os
+import json
+from datetime import datetime
 import traceback
 import logging as log
 import pandas as pd
@@ -25,6 +27,10 @@ class PlotNotAllowed(Exception):
 class PlotNotAllowed(Exception):
     """Custom exception for plot not allowed on EDA"""
     pass
+class CreateVisualEdaError(Exception):
+    """Custom exception for create visual eda"""
+    pass
+
 
 def import_data(df_path: str) -> pd.DataFrame:
     """
@@ -52,9 +58,7 @@ def import_data(df_path: str) -> pd.DataFrame:
     logger.info(f'(SUCCESS import_data({df_path}) -> msg: DataFrame read successfully -> df: {df.head().to_dict()}')
     return df
 
-
-#TODO: Test
-def perform_eda_pipeline(**kwargs):
+def perform_eda_pipeline(**kwargs) -> None:
     """
     Perform eda pipeline on df and save figures to images folder
     
@@ -75,13 +79,14 @@ def perform_eda_pipeline(**kwargs):
         
     Examples:
     ---------
-        >>> _= perform_eda_pipeline(
-                plot_type='histogram',
-                df=df,
-                col = 'Churn'
-                stats_calc = False
-            )
+    perform_eda_pipeline(
+        plot_type='histogram',
+        df=df,
+        col = 'Churn'
+        stats_calc = False
+        )
     """
+    
     def create_visual_eda(plot_type:str,df:pd.DataFrame,col:str) -> None:
         """
         Create images to visual inspection on eda pipeline
@@ -98,12 +103,17 @@ def perform_eda_pipeline(**kwargs):
         Returns:
         --------
         None
+
+        Examples:
+        --------
+        create_visual_eda(plot_type='histogram',df=df)
+
         """
+        logger.info(f'(SUCCESS perform_eda_pipeline.create_visual_eda) -> msg: Starting process -> kwargs: {kwargs}')
         try:
             plt.figure(figsize=(20,10))
-            log.info(f'(SUCCESS perform_eda_pipeline.visual_eda) -> msg: Starting process -> kwargs: {kwargs}')
             if plot_type not in ['histogram','normalized_barplot','distplot','heatmap']:
-                log.warning(
+                logger.warning(
                     '(WARNING perform_eda_pipeline.visual_eda) -> msg: Finishing process. Plot not allowed! -> '
                 f'kwargs: {kwargs}'
                 )
@@ -117,15 +127,15 @@ def perform_eda_pipeline(**kwargs):
             elif plot_type == 'heatmap':
                 sns.heatmap(df.corr(), annot=False, cmap='Dark2_r', linewidths = 2)
         except BaseException as exc:
-            log.error(
-            '(ERROR  perform_eda_pipeline.visual_eda) -> Finishing process -> '
+            logger.error(
+            '(ERROR  perform_eda_pipeline.visual_eda) -> msg: Finishing process -> '
             f'Exception {exc}'
             )
-            raise exc('perform_eda_pipeline.visual_eda problem!')
+            raise CreateVisualEdaError('perform_eda_pipeline.create_visual_eda problem!')
         exec_time = datetime.now()
         plt.savefig(f"/images{plot_type}-{exec_time}.jpg")
-        log.info(
-            f'(SUCCESS perform_eda_pipeline.visual_eda) -> msg: Finishing process. {plot_type} plot created and saved at /images -> kwargs: {kwargs}'
+        logger.info(
+            f'(SUCCESS perform_eda_pipeline.create_visual_eda) -> msg: Finishing process. {plot_type} plot created and saved at /images -> kwargs: {kwargs}'
             )
         return
     
@@ -143,9 +153,14 @@ def perform_eda_pipeline(**kwargs):
         Returns:
         --------
         None
+
+        Examples:
+        --------
+        create_stats_info(df=df,stats_calc=False)
+
         """
-        log.info(
-            f'(SUCCESS perform_eda_pipeline.stats_info) -> msg: Starting process ->  params: df:{df},stats_calc:{stats_calc}'
+        logger.info(
+            f'(SUCCESS perform_eda_pipeline.create_stats_info) -> msg: Starting process ->  params -> df:{df.head().to_dict()}, stats_calc:{stats_calc}'
             )
         if stats_calc:
             stats_data = {
@@ -153,13 +168,13 @@ def perform_eda_pipeline(**kwargs):
                 'null_vals': df.isnull().sum(),
                 'stats_desccription': df.describe().to_dict()
             }
-            log.info(
-                f'(SUCCESS perform_eda_pipeline.stats_info) -> msg: Created stats data! ->  params: df:{df},stats_calc:{stats_calc}'
+            logger.info(
+                f'(SUCCESS perform_eda_pipeline.create_stats_info) -> msg: Created stats data! ->  params -> df:{df.head().to_dict()}, stats_calc:{stats_calc}'
             )
         with open("data.json", "w") as f:
             json.dump(stats_data, f)
-        log.info(
-            f'(SUCCESS perform_eda_pipeline.stats_info) -> msg: Finishing process ->  params: df:{df},stats_calc:{stats_calc}'
+        logger.info(
+            f'(SUCCESS perform_eda_pipeline.create_stats_info) -> msg: Finishing process ->  params -> df:{df.head().to_dict()}, stats_calc:{stats_calc}'
             )
         return 
         
@@ -171,13 +186,13 @@ def perform_eda_pipeline(**kwargs):
         f'(SUCCESS perform_eda_pipeline) -> msg: Starting process ->  kwargs: {kwargs}'
     )
     
-    _= visual_eda(
+    create_visual_eda(
         plot_type = plot_type,
         df = df,
         col=col
     )
     
-    _= stats_info(df=df,stats_calc=stats_calc)
+    create_stats_info(df=df,stats_calc=stats_calc)
     
     log.info(
         f'(SUCCESS perform_eda_pipeline) -> msg: Finishing process ->  kwargs: {kwargs}'
