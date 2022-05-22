@@ -1,6 +1,8 @@
 import os
 import logging as log
-from churn_library import (import_data,create_visual_eda,create_stats_info,PlotNotAllowedError,CreateVisualEdaError)
+from churn_library import (
+	import_data,create_visual_eda,create_stats_info,PlotNotAllowedError,
+	CreateVisualEdaError,perform_eda_pipeline)
 from loguru import logger
 import pytest
 
@@ -43,6 +45,10 @@ class TestPredictChurn:
 		"""Test create_stats_info"""
 		df = import_data(df_path='data/test_data.csv')
 		assert create_stats_info(df=df,stats_calc=True)
+
+	def test_perform_eda_pipeline(self):
+		"""Test perform_eda_pipeline"""
+		pass
 
     # def test_data_loading(self):
     #     """Loads csv file"""
