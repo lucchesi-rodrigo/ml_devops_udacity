@@ -1,6 +1,6 @@
 import os
 import logging as log
-from churn_library import import_data
+from churn_library import (import_data,create_visual_eda)
 from loguru import logger
 import pytest
 
@@ -21,6 +21,11 @@ class TestPredictChurn:
 		"""Invalid path"""
 		with pytest.raises(FileNotFoundError):
 			_= import_data(df_path='data/test_data_test.csv')
+
+	def test_create_visual_eda(self):
+		"""Test create_visual_eda method"""
+		df = import_data(df_path='data/test_data.csv')
+		assert create_visual_eda(plot_type='histogram', df=df,col='x')
 
     # def test_data_loading(self):
     #     """Loads csv file"""

@@ -58,6 +58,97 @@ def import_data(df_path: str) -> pd.DataFrame:
     logger.info(f'(SUCCESS import_data({df_path}) -> msg: DataFrame read successfully -> df: {df.head().to_dict()}')
     return df
 
+def create_visual_eda(plot_type:str,df:pd.DataFrame,col:str) -> bool:
+    """
+    Create images to visual inspection on eda pipeline
+
+    Parameters
+    ----------
+    plot_type: str
+        Plot type
+    df: pd.DataFrame
+        Dataframe to be used in ml project
+    col: str
+        Column name to be used on plotting
+    
+    Returns:
+    --------
+    bool: Tag to return if process was processed
+
+    Examples:
+    --------
+    create_visual_eda(plot_type='histogram',df=df)
+
+    """
+    logger.info(f'(SUCCESS perform_eda_pipeline.create_visual_eda) -> msg: Starting process -> params -> plot_type: {plot_type}, df: {df.head().to_dict()}, col: {col}')
+    try:
+        plt.figure(figsize=(20,10))
+        if plot_type not in ['histogram','normalized_barplot','distplot','heatmap']:
+            logger.warning(
+                '(WARNING perform_eda_pipeline.visual_eda) -> msg: Finishing process. Plot not allowed! -> '
+                f'params -> plot_type: {plot_type}, df: {df.head().to_dict()}, col: {col}'
+            )
+            raise PlotNotAllowed('Plot not allowed on visual_eda method!')
+        if plot_type == 'histogram':
+            df[f'{col}'].hist()
+        elif plot_type == 'normalized_barplot':
+            df.col.value_counts('normalize').plot(kind='bar')
+        elif plot_type == 'distplot':
+            sns.distplot(df[f'{col}'])
+        elif plot_type == 'heatmap':
+            sns.heatmap(df.corr(), annot=False, cmap='Dark2_r', linewidths = 2)
+    except BaseException as exc:
+        logger.error(
+        '(ERROR  perform_eda_pipeline.visual_eda) -> msg: Finishing process -> params -> plot_type: {plot_type}, df: {df.head().to_dict()}, col: {col}'
+        f'Exception {exc}'
+        )
+        raise CreateVisualEdaError('perform_eda_pipeline.create_visual_eda problem!')
+    exec_time = datetime.now()
+    plt.savefig(f"images/{plot_type}-{exec_time}.jpg")
+    logger.info(
+        f'(SUCCESS perform_eda_pipeline.create_visual_eda) -> msg: Finishing process. {plot_type} plot created and saved at /images -> params -> plot_type: {plot_type}, df: {df.head().to_dict()}, col: {col}'
+        )
+    return 1
+
+def create_stats_info(df:pd.DataFrame,stats_calc:bool=False) -> None:
+    """
+    Create statistic analysis on eda pipeline
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        Dataframe to be used in ml project
+    stats_calc: bool
+        Flag to execute and save the statistical analysis
+    
+    Returns:
+    --------
+    None
+
+    Examples:
+    --------
+    create_stats_info(df=df,stats_calc=False)
+
+    """
+    logger.info(
+        f'(SUCCESS perform_eda_pipeline.create_stats_info) -> msg: Starting process ->  params -> df:{df.head().to_dict()}, stats_calc:{stats_calc}'
+        )
+    if stats_calc:
+        stats_data = {
+            'shape': df.shape(),
+            'null_vals': df.isnull().sum(),
+            'stats_desccription': df.describe().to_dict()
+        }
+        logger.info(
+            f'(SUCCESS perform_eda_pipeline.create_stats_info) -> msg: Created stats data! ->  params -> df:{df.head().to_dict()}, stats_calc:{stats_calc}'
+        )
+    with open("data.json", "w") as f:
+        json.dump(stats_data, f)
+    logger.info(
+        f'(SUCCESS perform_eda_pipeline.create_stats_info) -> msg: Finishing process ->  params -> df:{df.head().to_dict()}, stats_calc:{stats_calc}'
+        )
+    return 
+    
 def perform_eda_pipeline(**kwargs) -> None:
     """
     Perform eda pipeline on df and save figures to images folder
@@ -86,98 +177,6 @@ def perform_eda_pipeline(**kwargs) -> None:
         stats_calc = False
         )
     """
-    
-    def create_visual_eda(plot_type:str,df:pd.DataFrame,col:str) -> None:
-        """
-        Create images to visual inspection on eda pipeline
-    
-        Parameters
-        ----------
-        plot_type: str
-            Plot type
-        df: pd.DataFrame
-            Dataframe to be used in ml project
-        col: str
-            Column name to be used on plotting
-        
-        Returns:
-        --------
-        None
-
-        Examples:
-        --------
-        create_visual_eda(plot_type='histogram',df=df)
-
-        """
-        logger.info(f'(SUCCESS perform_eda_pipeline.create_visual_eda) -> msg: Starting process -> kwargs: {kwargs}')
-        try:
-            plt.figure(figsize=(20,10))
-            if plot_type not in ['histogram','normalized_barplot','distplot','heatmap']:
-                logger.warning(
-                    '(WARNING perform_eda_pipeline.visual_eda) -> msg: Finishing process. Plot not allowed! -> '
-                f'kwargs: {kwargs}'
-                )
-                raise PlotNotAllowed('Plot not allowed on visual_eda method!')
-            if plot_type == 'histogram':
-                df[f'{col}'].hist()
-            elif plot_type == 'normalized_barplot':
-                df.col.value_counts('normalize').plot(kind='bar')
-            elif plot_type == 'distplot':
-                sns.distplot(df[f'{col}'])
-            elif plot_type == 'heatmap':
-                sns.heatmap(df.corr(), annot=False, cmap='Dark2_r', linewidths = 2)
-        except BaseException as exc:
-            logger.error(
-            '(ERROR  perform_eda_pipeline.visual_eda) -> msg: Finishing process -> '
-            f'Exception {exc}'
-            )
-            raise CreateVisualEdaError('perform_eda_pipeline.create_visual_eda problem!')
-        exec_time = datetime.now()
-        plt.savefig(f"/images{plot_type}-{exec_time}.jpg")
-        logger.info(
-            f'(SUCCESS perform_eda_pipeline.create_visual_eda) -> msg: Finishing process. {plot_type} plot created and saved at /images -> kwargs: {kwargs}'
-            )
-        return
-    
-    def create_stats_info(df:pd.DataFrame,stats_calc:bool=False) -> None:
-        """
-        Create statistic analysis on eda pipeline
-    
-        Parameters
-        ----------
-        df: pd.DataFrame
-            Dataframe to be used in ml project
-        stats_calc: bool
-            Flag to execute and save the statistical analysis
-        
-        Returns:
-        --------
-        None
-
-        Examples:
-        --------
-        create_stats_info(df=df,stats_calc=False)
-
-        """
-        logger.info(
-            f'(SUCCESS perform_eda_pipeline.create_stats_info) -> msg: Starting process ->  params -> df:{df.head().to_dict()}, stats_calc:{stats_calc}'
-            )
-        if stats_calc:
-            stats_data = {
-                'shape': df.shape(),
-                'null_vals': df.isnull().sum(),
-                'stats_desccription': df.describe().to_dict()
-            }
-            logger.info(
-                f'(SUCCESS perform_eda_pipeline.create_stats_info) -> msg: Created stats data! ->  params -> df:{df.head().to_dict()}, stats_calc:{stats_calc}'
-            )
-        with open("data.json", "w") as f:
-            json.dump(stats_data, f)
-        logger.info(
-            f'(SUCCESS perform_eda_pipeline.create_stats_info) -> msg: Finishing process ->  params -> df:{df.head().to_dict()}, stats_calc:{stats_calc}'
-            )
-        return 
-        
     plot_type = kwargs.get('plot_type')
     df = kwargs.get('df')
     col = kwargs.get('col')  
@@ -457,5 +456,4 @@ def train_models(X_train, X_test, y_train, y_test):
     return True
     
 if __name__ == '__main__':
-    #df = import_data(df_path='data/test_data.csv')
-    df = import_data(df_path='data/test_data_test.csv')
+    os.system('pytest -s --cov=. tests/')
