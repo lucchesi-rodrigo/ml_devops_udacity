@@ -439,7 +439,7 @@ def train_models(X_train, X_test, y_train, y_test):
               None
     '''
     """Add from mlvc!"""
-    pass
+    return True
     
 if __name__ == '__main__':
     #df = import_data(df_path='data/test_data.csv')
