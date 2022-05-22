@@ -5,13 +5,14 @@ date: May 2022
 # library doc string
 # import libraries
 import os
+import traceback
 import logging as log
 import pandas as pd
 import churn_library
 import matplotlib.pyplot as plt
 import seaborn as sns
 from typing import List
-
+from loguru import logger
 log.basicConfig(
     filename='./logs/churn_library.log',
     level = log.INFO,
@@ -21,7 +22,9 @@ log.basicConfig(
 class PlotNotAllowed(Exception):
     """Custom exception for plot not allowed on EDA"""
     pass
-
+class PlotNotAllowed(Exception):
+    """Custom exception for plot not allowed on EDA"""
+    pass
 
 def import_data(df_path: str) -> pd.DataFrame:
     """
@@ -39,14 +42,14 @@ def import_data(df_path: str) -> pd.DataFrame:
         
     Examples:
     ---------
-        >>> df = import_data('path/file.csv')
+        >>> df = import_data(df_path='path/file.csv')
     """	
     try:
         df = pd.read_csv(df_path)
-        log.info(f'(SUCCESS: import_data({df_path}) -> msg: dataframe read successfully -> df: {df.head().to_dict()}')
-    except FileNotFoundError as exc:
-        log.error(f'(ERROR: import_data({df_path}) -> Exception: {exc}')
-        raise exc(f'Could not read data from inserted path: {df_path}')
+    except BaseException as exc:
+        logger.error(f'(ERROR import_data({df_path}) -> Exception: {exc}!')
+        raise FileNotFoundError(f'Could not read data from inserted path: {df_path}!')
+    logger.info(f'(SUCCESS import_data({df_path}) -> msg: DataFrame read successfully -> df: {df.head().to_dict()}')
     return df
 
 
@@ -439,5 +442,5 @@ def train_models(X_train, X_test, y_train, y_test):
     pass
     
 if __name__ == '__main__':
-    df = import_data(df_path='data/test_data.csv')
-    print(df)
+    #df = import_data(df_path='data/test_data.csv')
+    df = import_data(df_path='data/test_data_test.csv')
