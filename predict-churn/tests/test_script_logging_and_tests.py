@@ -19,7 +19,7 @@ class TestPredictChurn:
 		df = import_data(df_path='data/test_data.csv')
 		assert df.shape[0] > 0
 
-	def test_data_loading_exception(self):
+	def test_import_working_exception(self):
 		"""Invalid path"""
 		with pytest.raises(FileNotFoundError):
 			_= import_data(df_path='data/test_data_test.csv')
@@ -30,16 +30,16 @@ class TestPredictChurn:
 		assert create_visual_eda(plot_type='histogram', df=df,col='x')
 
 	def test_create_visual_eda_not_working_wrong_plot_type(self):
-		"""Invalid path"""
+		"""Test create_visual_eda PlotNotAllowedError exception"""
 		with pytest.raises(PlotNotAllowedError):
 			df = import_data(df_path='data/test_data.csv')
 			create_visual_eda(plot_type='line-plos-2d', df=df,col='x')
 
-	def test_create_visual_eda_not_working_exception(self):
-		"""Invalid path"""
+	def test_create_visual_eda_not_working_base_exception(self):
+		"""Test create_visual_eda PlotNotAllowedError exception"""
 		with pytest.raises(CreateVisualEdaError):
 			df = import_data(df_path='data/test_data.csv')
-			create_visual_eda(plot_type='line-plos-2d', df=df,col='x')
+			create_visual_eda(plot_type='histogram', df=df,col='o')
 
 	def test_create_stats_info(self):
 		"""Test create_stats_info"""

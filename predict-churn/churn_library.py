@@ -83,13 +83,9 @@ def create_visual_eda(plot_type:str,df:pd.DataFrame,col:str) -> bool:
     logger.info(f'(SUCCESS perform_eda_pipeline.create_visual_eda) -> msg: Starting process -> params -> plot_type: {plot_type}, df: {df.head().to_dict()}, col: {col}')
     try:
         plt.figure(figsize=(20,10))
-        import pdb;pdb.set_trace()
+        # import pdb;pdb.set_trace()
         if plot_type not in ['histogram','normalized_barplot','distplot','heatmap']:
-            logger.warning(
-                '(WARNING perform_eda_pipeline.visual_eda) -> msg: Finishing process. Plot not allowed! -> '
-                f'params -> plot_type: {plot_type}, df: {df.head().to_dict()}, col: {col}'
-            )
-            raise PlotNotAllowedError('Plot not allowed on visual_eda method!')
+            raise PlotNotAllowedError
         if plot_type == 'histogram':
             df[f'{col}'].hist()
         elif plot_type == 'normalized_barplot':
@@ -98,6 +94,12 @@ def create_visual_eda(plot_type:str,df:pd.DataFrame,col:str) -> bool:
             sns.distplot(df[f'{col}'])
         elif plot_type == 'heatmap':
             sns.heatmap(df.corr(), annot=False, cmap='Dark2_r', linewidths = 2)
+    except PlotNotAllowedError:
+        logger.warning(
+            '(WARNING perform_eda_pipeline.visual_eda) -> msg: Finishing process. Plot not allowed! -> '
+            f'params -> plot_type: {plot_type}, df: {df.head().to_dict()}, col: {col}'
+        )
+        raise PlotNotAllowedError('Plot not allowed on visual_eda method!') 
     except BaseException as exc:
         logger.error(
         '(ERROR  perform_eda_pipeline.visual_eda) -> msg: Finishing process -> params -> plot_type: {plot_type}, df: {df.head().to_dict()}, col: {col}'
