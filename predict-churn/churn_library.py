@@ -30,6 +30,9 @@ class PlotNotAllowedError(Exception):
 class CreateVisualEdaError(Exception):
     """Custom exception for create visual eda"""
     pass
+class CreateStatsInfoError(Exception):
+    """Custom exception for create_stats_info"""
+    pass
 
 
 def import_data(df_path: str) -> pd.DataFrame:
@@ -80,10 +83,9 @@ def create_visual_eda(plot_type:str,df:pd.DataFrame,col:str) -> bool:
     create_visual_eda(plot_type='histogram',df=df)
 
     """
-    logger.info(f'(SUCCESS perform_eda_pipeline.create_visual_eda) -> msg: Starting process -> params -> plot_type: {plot_type}, df: {df.head().to_dict()}, col: {col}')
     try:
+        logger.info(f'(SUCCESS perform_eda_pipeline.create_visual_eda) -> msg: Starting process -> params -> plot_type: {plot_type}, df: {df.head().to_dict()}, col: {col}')
         plt.figure(figsize=(20,10))
-        # import pdb;pdb.set_trace()
         if plot_type not in ['histogram','normalized_barplot','distplot','heatmap']:
             raise PlotNotAllowedError
         if plot_type == 'histogram':
@@ -133,21 +135,28 @@ def create_stats_info(df:pd.DataFrame,stats_calc:bool=False) -> None:
     create_stats_info(df=df,stats_calc=False)
 
     """
-    logger.info(
-        f'(SUCCESS perform_eda_pipeline.create_stats_info) -> msg: Starting process ->  params -> df:{df.head().to_dict()}, stats_calc:{stats_calc}'
-        )
-    if stats_calc:
-        stats_data = {
-            'shape': df.shape,
-            'null_vals': df.isnull().sum(),
-            'stats_desccription': df.describe().to_dict()
-        }
+    try:
         logger.info(
-            f'(SUCCESS perform_eda_pipeline.create_stats_info) -> msg: Created stats data! ->  params -> df:{df.head().to_dict()}, stats_calc:{stats_calc}'
-        )
-    now = datetime.now()
-    with open(f"data_{now}.pickle", "wb") as output_file:
-        pickle.dump(stats_data, output_file)
+            f'(SUCCESS perform_eda_pipeline.create_stats_info) -> msg: Starting process ->  params -> df:{df.head().to_dict()}, stats_calc:{stats_calc}'
+            )
+        if stats_calc:
+            stats_data = {
+                'shape': df.shape,
+                'null_vals': df.isnull().sum(),
+                'stats_desccription': df.describe().to_dict()
+            }
+            logger.info(
+                f'(SUCCESS perform_eda_pipeline.create_stats_info) -> msg: Created stats data! ->  params -> df:{df.head().to_dict()}, stats_calc:{stats_calc}'
+            )
+        now = datetime.now()
+        with open(f"data_{now}.pickle", "wb") as output_file:
+            pickle.dump(stats_data, output_file)
+    except BaseException as exc:
+        logger.error(
+            '(ERROR  perform_eda_pipeline.create_stats_info) -> msg: Finishing process -> params -> plot_type: {plot_type}, df: {df.head().to_dict()}, col: {col}'
+            f'Exception {exc}'
+            )
+        raise CreateStatsInfoError('Error during create_stats_info execution!')
     logger.info(
         f'(SUCCESS perform_eda_pipeline.create_stats_info) -> msg: Finishing process ->  params -> df:{df.head().to_dict()}, stats_calc:{stats_calc}'
         )

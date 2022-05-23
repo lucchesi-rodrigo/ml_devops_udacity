@@ -1,8 +1,9 @@
 import os
+import pandas as pd
 import logging as log
 from churn_library import (
 	import_data,create_visual_eda,create_stats_info,PlotNotAllowedError,
-	CreateVisualEdaError,perform_eda_pipeline)
+	CreateVisualEdaError,CreateStatsInfoError, perform_eda_pipeline)
 from loguru import logger
 import pytest
 
@@ -42,13 +43,17 @@ class TestPredictChurn:
 			create_visual_eda(plot_type='histogram', df=df,col='o')
 
 	def test_create_stats_info(self):
-		"""Test create_stats_info"""
+		"""Test create_stats_info working"""
 		df = import_data(df_path='data/test_data.csv')
 		assert create_stats_info(df=df,stats_calc=True)
+		assert df.shape == (5, 3)
 
-	def test_perform_eda_pipeline(self):
-		"""Test perform_eda_pipeline"""
-		pass
+	def test_create_stats_info_not_working_base_exception(self):
+		"""Test create_visual_eda PlotNotAllowedError exception"""
+		with pytest.raises(CreateStatsInfoError):
+			df = pd.DataFrame()
+			create_stats_info(df=df, stats_calc=True)
+
 
     # def test_data_loading(self):
     #     """Loads csv file"""
