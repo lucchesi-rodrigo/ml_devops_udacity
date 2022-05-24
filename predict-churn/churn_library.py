@@ -166,8 +166,8 @@ def perform_eda_pipeline(**kwargs) -> None:
     """
     Perform eda pipeline on df and save figures to images folder
     
-    Keyword Arguments
-    ----------
+    Keyword Arguments:
+    -----------------
     plot_type: str
         Plot type
     df: pd.DataFrame
@@ -211,20 +211,25 @@ def perform_eda_pipeline(**kwargs) -> None:
     )
     return 1
 
-def encoder_helper(df: pd.DataFrame, target_col:str,response:str='',category_lst:List=[]) -> pd.DataFrame:
+def encoder_helper(df: pd.DataFrame, target_col:str,response:str='',category_lst:List[str]=[]) -> pd.DataFrame:
     '''
-    helper function to turn each categorical column into a new column with
+    Helper function to turn each categorical column into a new column with
     propotion of churn for each category - associated with cell 15 from the notebook
 
-    input:
-            df: pandas dataframe
-            category_lst: list of columns that contain categorical features
-            response: string of response name [optional argument that could be used for naming variables or index y column]
+    Parameters:
+    -----------
+        df: pd.DataFrame
+            pandas dataframe
+        target_col: str 
+            DataFrame column name to be encoded
+        response: str
+            string of response name [optional argument that could be used for naming variables or index y column]
+        category_lst: List[str]
+            List of columns to be encoded
+    Returns:
+    --------
+        df: Column encoded
 
-    output:
-    
-        
-            df: pandas dataframe with new columns for
     '''
     log.info(
         f'(SUCCESS encoder_helper) -> Starting process'
