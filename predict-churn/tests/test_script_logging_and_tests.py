@@ -54,6 +54,26 @@ class TestPredictChurn:
 			df = pd.DataFrame()
 			create_stats_info(df=df, stats_calc=True)
 
+	def test_perform_eda_pipeline_working(self):
+		"""Test perform_eda_pipeline"""
+		df = import_data(df_path='data/test_data.csv')
+		assert perform_eda_pipeline(
+			plot_type='histogram', 
+			df=df,
+			col='x', 
+			stats_calc=True
+			)
+
+	def test_perform_eda_pipeline_not_working_base_exception(self):
+		"""Test perform_eda_pipeline"""
+		with pytest.raises(CreateVisualEdaError):
+			df = import_data(df_path='data/test_data.csv')
+			perform_eda_pipeline(
+				plot_type='histogram', 
+				df=df,
+				col='o', 
+				stats_calc=True
+				)
 
     # def test_data_loading(self):
     #     """Loads csv file"""

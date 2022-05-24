@@ -209,7 +209,7 @@ def perform_eda_pipeline(**kwargs) -> None:
     log.info(
         f'(SUCCESS perform_eda_pipeline) -> msg: Finishing process ->  kwargs: {kwargs}'
     )
-    return
+    return 1
 
 def encoder_helper(df: pd.DataFrame, target_col:str,response:str='',category_lst:List=[]) -> pd.DataFrame:
     '''
