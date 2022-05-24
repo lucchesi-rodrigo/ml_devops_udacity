@@ -237,7 +237,8 @@ def encoder_helper(**kwargs) -> pd.DataFrame:
         df = kwargs.get('df')
         target_col = kwargs.get('target_col')
         response = kwargs.get('response',None)
-        category_lst = kwargs.get('category_lst',[])
+        categoric_cols = kwargs.get('categoric_cols',[])
+        categoric_lst = []
         logger.info(
             f'(SUCCESS encoder_helper) -> msg: Starting process! -> kwargs: {kwargs}'
         )
@@ -248,10 +249,11 @@ def encoder_helper(**kwargs) -> pd.DataFrame:
                 f'(SUCCESS encoder_helper) -> msg: Retrieving categoric cols from df: {categoric_cols} -> kwargs: {kwargs}'
             )
         for col in categoric_cols:
+            categoric_lst = []
             category_groups = df.groupby(col).mean()[target_col]
             for val in df[col]:
-                category_lst.append(category_groups.loc[val])
-            df[f'{col}_{target_col}'] = category_lst         
+                categoric_lst.append(category_groups.loc[val])
+            df[f'{col}_{target_col}'] = categoric_lst        
             log.info(
                 f'(SUCCESS encoder_helper) -> msg: Creating new encoded column {col}_{target_col} -> kwargs: {kwargs}'
             )

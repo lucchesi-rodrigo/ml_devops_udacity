@@ -1,9 +1,10 @@
 import os
 import pandas as pd
+import numpy as np
 import logging as log
 from churn_library import (
 	import_data,create_visual_eda,create_stats_info,PlotNotAllowedError,
-	CreateVisualEdaError,CreateStatsInfoError, perform_eda_pipeline)
+	CreateVisualEdaError,CreateStatsInfoError,EncoderHelperError, perform_eda_pipeline,encoder_helper)
 from loguru import logger
 import pytest
 
@@ -75,31 +76,58 @@ class TestPredictChurn:
 				stats_calc=True
 				)
 
-    # def test_data_loading(self):
-    #     """Loads csv file"""
-    #     mlm = MlModeling(model_name='lrc', model_algorithm=LogisticRegression(), model_version='0.1')
-    #     mlm.data_loading('tests/data/data.csv')
-    #     assert mlm.df.columns.to_list() == ['x','y']
+	def test_encoder_helper_with_categoric_lst(self):
+		df = pd.DataFrame(
+			[
+				("bird", "Falconiformes", 389.0),
+				("bird", "Psittaciformes", 24.0),
+				("mammal", "Carnivora", 80.2),
+				("mammal", "Primates", np.nan),
+				("mammal", "Carnivora", 58),
+			],
+			index=["falcon", "parrot", "lion", "monkey", "leopard"],
+			columns=("class", "order", "max_speed"),
+		)
+		col_name='order'
+		target_col='max_speed'
 
-    # def test_eda(self):
-	#     '''
-	#     test perform eda function
-	#     '''
+		df_new = encoder_helper(
+			df=df,
+			target_col=target_col,
+			categoric_cols=['class','order']
+			)
+		
+		assert sorted(df_new.columns.tolist()) == sorted(['class', 'class_max_speed', 'max_speed', 'order', 'order_max_speed'])
 
+	def test_encoder_helper_without_categoric_lst(self):
+		df = pd.DataFrame(
+			[
+				("bird", "Falconiformes", 389.0),
+				("bird", "Psittaciformes", 24.0),
+				("mammal", "Carnivora", 80.2),
+				("mammal", "Primates", np.nan),
+				("mammal", "Carnivora", 58),
+			],
+			index=["falcon", "parrot", "lion", "monkey", "leopard"],
+			columns=("class", "order", "max_speed"),
+		)
+		col_name='order'
+		target_col='max_speed'
 
-    # def test_encoder_helper(self):
-	#     '''
-	#     test encoder helper
-	#     '''
+		df_new = encoder_helper(
+			df=df,
+			target_col=target_col
+			)
+		
+		assert sorted(df_new.columns.tolist()) == sorted(['class', 'class_max_speed', 'max_speed', 'order', 'order_max_speed'])
 
+	def test_encoder_helper_without_exception(self):
+		with pytest.raises(EncoderHelperError):
+			target_col='max_speed'
+			df = None
+			_= encoder_helper(
+				df=df,
+				target_col=target_col
+				)
+    
 
-    # def test_perform_feature_engineering(self):
-	#     '''
-	#     test perform_feature_engineering
-	#     '''
-
-
-    # def test_train_models(train_models):
-	# '''
-	#     test train_models
-	# '''
