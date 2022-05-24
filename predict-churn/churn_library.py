@@ -33,7 +33,9 @@ class CreateVisualEdaError(Exception):
 class CreateStatsInfoError(Exception):
     """Custom exception for create_stats_info"""
     pass
-
+class EncoderHelperError(Exception):
+    """Custom exception for encoder_helper"""
+    pass
 
 def import_data(df_path: str) -> pd.DataFrame:
     """
@@ -211,13 +213,13 @@ def perform_eda_pipeline(**kwargs) -> None:
     )
     return 1
 
-def encoder_helper(df: pd.DataFrame, target_col:str,response:str='',category_lst:List[str]=[]) -> pd.DataFrame:
+def encoder_helper(**kwargs) -> pd.DataFrame:
     '''
     Helper function to turn each categorical column into a new column with
     propotion of churn for each category - associated with cell 15 from the notebook
 
-    Parameters:
-    -----------
+    Keyword Arguments:
+    ------------------
         df: pd.DataFrame
             pandas dataframe
         target_col: str 
@@ -228,34 +230,39 @@ def encoder_helper(df: pd.DataFrame, target_col:str,response:str='',category_lst
             List of columns to be encoded
     Returns:
     --------
-        df: Column encoded
+        df: DataFrame with columns encoded
 
     '''
-    log.info(
-        f'(SUCCESS encoder_helper) -> Starting process'
-    )
     try:
+        df = kwargs.get('df')
+        target_col = kwargs.get('target_col')
+        response = kwargs.get('response',None)
+        category_lst = kwargs.get('category_lst',[])
+        logger.info(
+            f'(SUCCESS encoder_helper) -> msg: Starting process! -> kwargs: {kwargs}'
+        )
         if not categoric_cols:
             categoric_cols = [
-                col for col in df.columns if df[column].dtype == 'object']
+                col for col in df.columns if df[col].dtype == 'object']
             log.info(
-                f'(SUCCESS encoder_helper) -> Retrieving categoric cols from df: {categoric_cols}'
+                f'(SUCCESS encoder_helper) -> msg: Retrieving categoric cols from df: {categoric_cols} -> kwargs: {kwargs}'
             )
         for col in categoric_cols:
             category_groups = df.groupby(col).mean()[target_col]
             for val in df[col]:
                 category_lst.append(category_groups.loc[val])
-
-            df[f'{col_name}_{target_col}'] = category_lst
-            
-        log.info(
-            f'(SUCCESS encoder_helper) -> Finishing process. New df column {col_name}_{target_col} created!'
-        )
+            df[f'{col}_{target_col}'] = category_lst         
+            log.info(
+                f'(SUCCESS encoder_helper) -> msg: Creating new encoded column {col}_{target_col} -> kwargs: {kwargs}'
+            )
     except BaseException as exc:
         log.error(
-            f'(ERROR encoder_helper) -> Finishing process -> Exception: {exc}'
+            f'(ERROR encoder_helper) -> Finishing process -> kwargs: {kwargs} -> Exception: {exc}'
         )
-        raise EncoderHelperException('Error during encoder_helper execution! ')
+        raise EncoderHelperError('Error during encoder_helper execution!')
+    log.info(
+        f'(SUCCESS encoder_helper) -> msg: Finishing process -> kwargs: {kwargs}'
+    )
     return df
 
 def perform_feature_engineering(**kwargs):
