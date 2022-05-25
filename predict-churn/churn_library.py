@@ -13,8 +13,10 @@ import pandas as pd
 import churn_library
 import matplotlib.pyplot as plt
 import seaborn as sns
-from typing import List
+from typing import List,Tuple,Union
 from loguru import logger
+from sklearn.model_selection import train_test_split
+
 log.basicConfig(
     filename='./logs/churn_library.log',
     level = log.INFO,
@@ -36,6 +38,9 @@ class CreateStatsInfoError(Exception):
 class EncoderHelperError(Exception):
     """Custom exception for encoder_helper"""
     pass
+class FeatureEngineeringError(Exception):
+    """Custom exception for perform_feature_engineering"""
+    pass    
 
 def import_data(df_path: str) -> pd.DataFrame:
     """
@@ -267,40 +272,49 @@ def encoder_helper(**kwargs) -> pd.DataFrame:
     )
     return df
 
-def perform_feature_engineering(**kwargs):
+def perform_feature_engineering(
+    **kwargs) -> Tuple[pd.DataFrame,pd.DataFrame,Union[pd.DataFrame,pd.TimeSeries],Union[pd.DataFrame,pd.TimeSeries]]:
     '''
-    input:
-              df: pandas dataframe
-              response: string of response name [optional argument that could be used for naming variables or index y column]
+    Method to perform feture engineering. Create X and y matrices for machine learning process
 
-    output:
-              X_train: X training data
-              X_test: X testing data
-              y_train: y training data
-              y_test: y testing data
+    Keyword Arguments:
+    ------------------
+        df: pd.DataFrame
+            pandas dataframe with raw dataset
+        x_cols: str 
+            Columns to creta the state matrix
+    Returns:
+    --------
+        X_train: pd.DataFrame
+            Train matrix 
+        X_test: pd.DataFrame
+            Test matrix 
+        y_train: Union[pd.DataFrame,pd.TimeSeries]
+            Target train matrix 
+        y_test: Union[pd.DataFrame,pd.TimeSeries]
+            Target test matrix
     '''
-    log.info(
-        f'(SUCCESS perform_feature_engineering) -> Starting process -> kwargs: {kwargs}'
-    )
     try:
-        target_col = kwargs.get('target_col')
-        response = kwargs.get('response',None)
-        keep_cols = kwargs.get('keep_cols')
+        df = kwargs.get('df')
+        y_cols = kwargs.get('y_cols')
+        x_cols = kwargs.get('x_cols')
         test_size = kwargs.get('test_size',0.3)
-        
-        y = df[f'{target_col}']
-        X = pd.DataFrame()
-        X[keep_cols] = df[keep_cols]
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size= 0.3, random_state=11)
+        log.info(
+            f'(SUCCESS perform_feature_engineering) -> Starting process -> kwargs: {kwargs}'
+        )
+        y = df[df[y_cols]]
+        X = df[df[x_cols]]
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size= test_size, random_state=11)
+        log.info(
+            f'(SUCCESS perform_feature_engineering) -> Finishing process. Feature engineering executed! -> kwargs: {kwargs}'
+        )
     except BaseException as exc:
         log.error(
             f'(ERROR perform_feature_engineering) -> Finishing process -> kwargs: {kwargs} -> Exception: {exc}'
         )
         raise FeatureEngineeringError('Feature engineering can not be executed')
     
-    log.info(
-            f'(SUCCESS perform_feature_engineering) -> Finishing process. Feature engineering executed! -> kwargs: {kwargs}'
-        )
+
     return X_train, X_test, y_train, y_test
 
 def classification_report_image(**kwargs):
