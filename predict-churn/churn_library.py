@@ -273,7 +273,7 @@ def encoder_helper(**kwargs) -> pd.DataFrame:
     return df
 
 def perform_feature_engineering(
-    **kwargs) -> Tuple[pd.DataFrame,pd.DataFrame,Union[pd.DataFrame,pd.TimeSeries],Union[pd.DataFrame,pd.TimeSeries]]:
+    **kwargs) -> Tuple[pd.DataFrame,pd.DataFrame,Union[pd.DataFrame,pd.Series],Union[pd.DataFrame,pd.Series]]:
     '''
     Method to perform feture engineering. Create X and y matrices for machine learning process
 
@@ -289,21 +289,23 @@ def perform_feature_engineering(
             Train matrix 
         X_test: pd.DataFrame
             Test matrix 
-        y_train: Union[pd.DataFrame,pd.TimeSeries]
+        y_train: Union[pd.DataFrame,pd.Series]
             Target train matrix 
-        y_test: Union[pd.DataFrame,pd.TimeSeries]
+        y_test: Union[pd.DataFrame,pd.Series]
             Target test matrix
     '''
     try:
+        log.info(
+            f'(SUCCESS perform_feature_engineering) -> Starting process -> kwargs: {kwargs}'
+        )
         df = kwargs.get('df')
         y_cols = kwargs.get('y_cols')
         x_cols = kwargs.get('x_cols')
         test_size = kwargs.get('test_size',0.3)
-        log.info(
-            f'(SUCCESS perform_feature_engineering) -> Starting process -> kwargs: {kwargs}'
-        )
-        y = df[df[y_cols]]
-        X = df[df[x_cols]]
+        
+        y = df[y_cols]
+        X = df[x_cols]
+        
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size= test_size, random_state=11)
         log.info(
             f'(SUCCESS perform_feature_engineering) -> Finishing process. Feature engineering executed! -> kwargs: {kwargs}'

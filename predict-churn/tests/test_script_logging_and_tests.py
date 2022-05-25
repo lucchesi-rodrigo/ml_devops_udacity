@@ -4,7 +4,9 @@ import numpy as np
 import logging as log
 from churn_library import (
 	import_data,create_visual_eda,create_stats_info,PlotNotAllowedError,
-	CreateVisualEdaError,CreateStatsInfoError,EncoderHelperError, perform_eda_pipeline,encoder_helper)
+	CreateVisualEdaError,CreateStatsInfoError,EncoderHelperError, FeatureEngineeringError,
+	perform_eda_pipeline,encoder_helper, perform_feature_engineering
+	)
 from loguru import logger
 import pytest
 
@@ -130,4 +132,51 @@ class TestPredictChurn:
 				target_col=target_col
 				)
     
+	def test_perform_feature_engineering_working(self):
+		"""Test """
+		df = pd.DataFrame(
+			[
+				("bird", "Falconiformes", 389.0),
+				("bird", "Psittaciformes", 24.0),
+				("mammal", "Carnivora", 80.2),
+				("mammal", "Primates", 0),
+				("mammal", "Carnivora", 58),
+			],
+			index=["falcon", "parrot", "lion", "monkey", "leopard"],
+			columns=("class", "order", "max_speed"),
+		)
+		x_cols=["class", "order"]
+		y_cols=['max_speed']
 
+		X_train, X_test, y_train, y_test = perform_feature_engineering(
+			df=df,
+			x_cols=x_cols,
+			y_cols= y_cols
+		)
+		assert X_train.shape[0] > 1
+		assert X_test.shape[0] > 1
+		assert y_train.shape[0] > 1
+		assert y_test.shape[0] > 1
+
+	def test_perform_feature_engineering_exception(self):
+		with pytest.raises(FeatureEngineeringError):
+			df = pd.DataFrame(
+				[
+					("bird", "Falconiformes", 389.0),
+					("bird", "Psittaciformes", 24.0),
+					("mammal", "Carnivora", 80.2),
+					("mammal", "Primates", 0),
+					("mammal", "Carnivora", 58),
+				],
+				index=["falcon", "parrot", "lion", "monkey", "leopard"],
+				columns=("class", "order", "max_speed"),
+			)
+			x_cols=["class", "order"]
+			y_cols=['max_speed']
+
+			_= perform_feature_engineering(
+				df=df,
+				x_cols=x_cols,
+				y_cols= y_cols,
+				test_size=0.9,
+			)
