@@ -4,11 +4,14 @@ import numpy as np
 import logging as log
 from churn_library import (
 	import_data,create_visual_eda,create_stats_info,PlotNotAllowedError,
-	CreateVisualEdaError,CreateStatsInfoError,EncoderHelperError, FeatureEngineeringError,
-	perform_eda_pipeline,encoder_helper, perform_feature_engineering
+	CreateVisualEdaError,CreateStatsInfoError,EncoderHelperError, FeatureEngineeringError,ClassificationReportImageError,
+	perform_eda_pipeline,encoder_helper, perform_feature_engineering,create_classification_report_image
 	)
 from loguru import logger
 import pytest
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import GridSearchCV
 
 log.basicConfig(
     filename='./logs/churn_library_tests.log',
@@ -180,3 +183,70 @@ class TestPredictChurn:
 				y_cols= y_cols,
 				test_size=0.9,
 			)
+
+	def test_create_classification_report_image_working(self):
+		"""Test create_classification_report_image"""
+		df = pd.DataFrame(
+			[
+				(100, 188, 0),
+				(70, 170, 1),
+				(60, 170, 0),
+				(80, 188, 1),
+				(67, 166, 0),
+				(66, 166, 1),
+				(100, 188, 1),
+				(70, 170, 0),
+				(60, 170, 1),
+				(80, 188, 0),
+				(67, 166, 1),
+				(66, 166, 0),
+				(100, 188, 1),
+				(70, 170, 0),
+				(60, 170, 1),
+				(80, 188, 0),
+				(67, 166, 1),
+				(66, 166, 0),
+			],
+			columns=("over_weight", "height", "age"),
+		)
+		x_cols=["height", "age"]
+		y_cols=['over_weight']
+		param_grid = { 
+			'n_estimators': [200, 500],
+			'max_features': ['auto', 'sqrt'],
+			'max_depth' : [4,5,100],
+			'criterion' :['gini', 'entropy']
+		}
+		X_train, X_test, y_train, y_test = perform_feature_engineering(
+			df=df,
+			x_cols=x_cols,
+			y_cols= y_cols
+		)
+		rfc = RandomForestClassifier(random_state=42)
+		
+
+		param_grid = { 
+			'n_estimators': [200, 500],
+			'max_features': ['auto', 'sqrt'],
+			'max_depth' : [4,5,100],
+			'criterion' :['gini', 'entropy']
+		}
+
+		cv_rfc = GridSearchCV(estimator=rfc, param_grid=param_grid, cv=2)
+		cv_rfc.fit(X_train, y_train)
+
+		y_train_preds = cv_rfc.best_estimator_.predict(X_train)
+		y_test_preds = cv_rfc.best_estimator_.predict(X_test)
+		assert create_classification_report_image(
+			y_train = y_train,
+        	y_test = y_test,
+        	y_train_preds = y_train_preds,
+        	y_test_preds = y_test_preds,
+        	model_name = 'random_forest'
+		)
+
+	def test_clf_report_exception(self):
+		with pytest.raises(ClassificationReportImageError):
+			_ = create_classification_report_image(
+				model_name = 'random_forest'
+				)

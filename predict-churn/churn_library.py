@@ -16,6 +16,11 @@ import seaborn as sns
 from typing import List,Tuple,Union
 from loguru import logger
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import plot_roc_curve, classification_report
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import GridSearchCV
+
 
 log.basicConfig(
     filename='./logs/churn_library.log',
@@ -41,7 +46,9 @@ class EncoderHelperError(Exception):
 class FeatureEngineeringError(Exception):
     """Custom exception for perform_feature_engineering"""
     pass    
-
+class ClassificationReportImageError(Exception):
+    """Custom exception for classification_report_image"""
+    pass
 def import_data(df_path: str) -> pd.DataFrame:
     """
     Returns dataframe for the csv found at path
@@ -319,10 +326,11 @@ def perform_feature_engineering(
 
     return X_train, X_test, y_train, y_test
 
-def classification_report_image(**kwargs):
+def create_classification_report_image(**kwargs):
     """
     Produces classification report for training and testing results and stores report as image
     in images folder
+
     Keyword arguments
     -----------------
         y_train (pd.DataFrame): training response values
@@ -350,7 +358,7 @@ def classification_report_image(**kwargs):
         plt.text(
             0.01, 0.05, str(
                 classification_report(
-                    y_test, y_test_predicted)), {
+                    y_test, y_test_preds)), {
                 'fontsize': 10}, fontproperties='monospace')
         plt.text(
             0.01, 0.6, model_name, {
@@ -358,20 +366,20 @@ def classification_report_image(**kwargs):
         plt.text(
             0.01, 0.7, str(
                 classification_report(
-                    y_train, y_train_predicted)), {
+                    y_train, y_train_preds)), {
                 'fontsize': 10}, fontproperties='monospace')
         plt.axis('off')
         plt.savefig(f'reports/{model_name}_report.pdf')
     except BaseException as exc:
         log.error(
-            f'(ERROR classification_report_image) -> Finishing process -> Exception: {traceback.format_exc()}'
+            f'(ERROR classification_report_image) -> Finishing process -> Exception: {exc}'
         )
         raise ClassificationReportImageError('Could not process classification report')
         
     log.info(
         f'(SUCCESS classification_report_image) -> Finishing process. Classification report created at repoorts folder! -> kwargs: {kwargs}'
     )
-    return
+    return 1
 
 
 def feature_importance_plot(model, X_data, output_pth):
