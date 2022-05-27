@@ -328,7 +328,6 @@ def perform_feature_engineering(
 
     return X_train, X_test, y_train, y_test
 
-@perform_feature_engineering
 def create_classification_report_image(**kwargs):
     """
     Produces classification report for training and testing results and stores report as image
@@ -405,29 +404,30 @@ def create_feature_importance_plot_1(**kwargs):
         >>> model_data = fit_predict_to_best_estimator(model_name='rfc',model_algorithm='RandomForestClassifier(),param_grid= {data ...},folds= 5)
         >>> model.feature_importance_plot_1(model_data=model_data)
     """
-    model_data = kwargs.get('model_data')
+    
     try:
-        log.info(
-            f'(SUCCESS feature_importance_plot_1) -> Starting process -> kwargs: {kwargs}'
-        )
-        model = model_data['model']
-        importance = model.best_estimator_.feature_importances_
-        indices = np.argsort(importance)[::-1]
-        names = [self.X.columns[i] for i in indices]
+        pass
+        # log.info(
+        #     f'(SUCCESS feature_importance_plot_1) -> Starting process -> kwargs: {kwargs}'
+        # )
+        # model = model_data['model']
+        # importance = model.best_estimator_.feature_importances_
+        # indices = np.argsort(importance)[::-1]
+        # names = [self.X.columns[i] for i in indices]
 
-        plt.figure(figsize=(20, 5))
+        # plt.figure(figsize=(20, 5))
 
-        plt.title("Feature Importance")
-        plt.ylabel('Importance')
-        plt.bar(range(self.X.shape[1]), importance[indices])
-        plt.xticks(range(self.X.shape[1]), names, rotation=90)
-        plt.savefig(f'plots/feature_importance/feature_importance_plot1_{model_name}.pdf')
+        # plt.title("Feature Importance")
+        # plt.ylabel('Importance')
+        # plt.bar(range(self.X.shape[1]), importance[indices])
+        # plt.xticks(range(self.X.shape[1]), names, rotation=90)
+        # plt.savefig(f'plots/feature_importance/feature_importance_plot1_{model_name}.pdf')
     except BaseException as exc:
         log.error(
             f'(ERROR feature_importance_plot_1) -> Finishing process -> kwargs: {kwargs} -> '
             f'Exception: {traceback.format_exc()}'
         )
-        raise FeatureImportancePlot1Error(f'Feature importance 1 could not be processed. kwargs: {kwargs}')
+        raise #FeatureImportancePlot1Error(f'Feature importance 1 could not be processed. kwargs: {kwargs}')
     log.info(
         f'(SUCCESS feature_importance_plot_1) -> Starting process -> kwargs: {kwargs}'
     )
@@ -456,27 +456,26 @@ def create_feature_importance_plot_2(**kwargs):
         >>> model_data = fit_predict_to_best_estimator(model_name='rfc',model_algorithm='RandomForestClassifier(),param_grid= {data ...},folds= 5)
         >>> model.feature_importance_plot_2(model_data=model_data)        """
     try:
-        log.info(
-            f'(SUCCESS feature_importance_plot_1) -> Starting process -> kwargs: {kwargs}'
-        )
-        model = model_data['model']
-        explainer = shap.TreeExplainer(model.best_estimator_)
-        shap_values = explainer.shap_values(self.X_test)
-        shap.summary_plot(shap_values, self.X_test, plot_type="bar")
-        plt.show()
+        pass
+        # log.info(
+        #     f'(SUCCESS feature_importance_plot_1) -> Starting process -> kwargs: {kwargs}'
+        # )
+        # # model = model_data['model']
+        # # explainer = shap.TreeExplainer(model.best_estimator_)
+        # # shap_values = explainer.shap_values(self.X_test)
+        # # shap.summary_plot(shap_values, self.X_test, plot_type="bar")
+        # plt.show()
     except BaseException as exc:
         log.error(
             f'(ERROR feature_importance_plot_2) -> Finishing process -> kwargs: {kwargs} -> '
-            f'Exception: {traceback.format_exc()}'
+            f'Exception: {exc}'
         )
-        raise FeatureImportancePlot2Error(f'Feature importance 2 could not be processed. kwargs: {kwargs}')
+        raise #FeatureImportancePlot2Error(f'Feature importance 2 could not be processed. kwargs: {kwargs}')
     log.info(
         f'(SUCCESS feature_importance_plot_2) -> Starting process -> kwargs: {kwargs}'
     )
 
 
-@create_feature_importance_plot_2
-@create_feature_importance_plot_1
 def create_feature_importance_plot(**kwargs):
     '''
     creates and stores the feature importances in pth
@@ -496,14 +495,11 @@ def create_feature_importance_plot(**kwargs):
         f'(SUCCESS feature_importance) -> Finishing process. Feature importance plots created! -> kwargs: {kwargs}'
         )
     if plt_backend:
-       return feature_importance_plot_1(model_data: Dict = None) 
+       return create_feature_importance_plot_1(x=1) 
     else:
-       return feature_importance_plot_2(model_data: Dict = None)  
+       return create_feature_importance_plot_1(x=1)  
 
 
-    
-@perform_feature_engineering
-@encoder_helper
 def train_models(**kwargs):
     '''
     train, store model results: images + scores, and store models
