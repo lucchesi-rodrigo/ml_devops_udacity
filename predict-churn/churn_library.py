@@ -49,6 +49,8 @@ class FeatureEngineeringError(Exception):
 class ClassificationReportImageError(Exception):
     """Custom exception for classification_report_image"""
     pass
+
+
 def import_data(df_path: str) -> pd.DataFrame:
     """
     Returns dataframe for the csv found at path
@@ -326,6 +328,7 @@ def perform_feature_engineering(
 
     return X_train, X_test, y_train, y_test
 
+@perform_feature_engineering
 def create_classification_report_image(**kwargs):
     """
     Produces classification report for training and testing results and stores report as image
@@ -381,8 +384,100 @@ def create_classification_report_image(**kwargs):
     )
     return 1
 
+def create_feature_importance_plot_1(**kwargs):
+    """
+    Generates a matplotlib bar plot to describe feature importance on
+    X matrix targeting dimensionality reduction to avoid overfitting
+    and decrease model complexity -> Matplotlib backend
+    Parameters
+    ----------
+    model_data: Dict
+        Machine learning model data
+    Returns:
+    --------
+    None
+    
+    Examples:
+    ---------
+        >>> model = mlvc.CreateMlModel('test')
+        >>> model.data_loading('db/data.csv')
+        >>> model.test_train_data_split(test_size= 0.3,random_state= 11)
+        >>> model_data = fit_predict_to_best_estimator(model_name='rfc',model_algorithm='RandomForestClassifier(),param_grid= {data ...},folds= 5)
+        >>> model.feature_importance_plot_1(model_data=model_data)
+    """
+    model_data = kwargs.get('model_data')
+    try:
+        log.info(
+            f'(SUCCESS feature_importance_plot_1) -> Starting process -> kwargs: {kwargs}'
+        )
+        model = model_data['model']
+        importance = model.best_estimator_.feature_importances_
+        indices = np.argsort(importance)[::-1]
+        names = [self.X.columns[i] for i in indices]
 
-def feature_importance_plot(model, X_data, output_pth):
+        plt.figure(figsize=(20, 5))
+
+        plt.title("Feature Importance")
+        plt.ylabel('Importance')
+        plt.bar(range(self.X.shape[1]), importance[indices])
+        plt.xticks(range(self.X.shape[1]), names, rotation=90)
+        plt.savefig(f'plots/feature_importance/feature_importance_plot1_{model_name}.pdf')
+    except BaseException as exc:
+        log.error(
+            f'(ERROR feature_importance_plot_1) -> Finishing process -> kwargs: {kwargs} -> '
+            f'Exception: {traceback.format_exc()}'
+        )
+        raise FeatureImportancePlot1Error(f'Feature importance 1 could not be processed. kwargs: {kwargs}')
+    log.info(
+        f'(SUCCESS feature_importance_plot_1) -> Starting process -> kwargs: {kwargs}'
+    )
+    return
+
+def create_feature_importance_plot_2(**kwargs):
+    """
+    Generates a matplotlib bar plot to describe feature importance on
+    X matrix targeting dimensionality reduction to avoid overfitting
+    and decrease model complexity -> Shap backend
+    Parameters
+    ----------
+    self: CreateMlModel
+        Create model object data
+    model_data: str
+        Machine learning model data
+    Returns:
+    --------
+    shap: Shap
+        Figure with feature importance information
+    Examples:
+    ---------
+        >>> model = mlvc.CreateMlModel('test')
+        >>> model.data_loading('db/data.csv')
+        >>> model.test_train_data_split(test_size= 0.3,random_state= 11)
+        >>> model_data = fit_predict_to_best_estimator(model_name='rfc',model_algorithm='RandomForestClassifier(),param_grid= {data ...},folds= 5)
+        >>> model.feature_importance_plot_2(model_data=model_data)        """
+    try:
+        log.info(
+            f'(SUCCESS feature_importance_plot_1) -> Starting process -> kwargs: {kwargs}'
+        )
+        model = model_data['model']
+        explainer = shap.TreeExplainer(model.best_estimator_)
+        shap_values = explainer.shap_values(self.X_test)
+        shap.summary_plot(shap_values, self.X_test, plot_type="bar")
+        plt.show()
+    except BaseException as exc:
+        log.error(
+            f'(ERROR feature_importance_plot_2) -> Finishing process -> kwargs: {kwargs} -> '
+            f'Exception: {traceback.format_exc()}'
+        )
+        raise FeatureImportancePlot2Error(f'Feature importance 2 could not be processed. kwargs: {kwargs}')
+    log.info(
+        f'(SUCCESS feature_importance_plot_2) -> Starting process -> kwargs: {kwargs}'
+    )
+
+
+@create_feature_importance_plot_2
+@create_feature_importance_plot_1
+def create_feature_importance_plot(**kwargs):
     '''
     creates and stores the feature importances in pth
     input:
@@ -393,106 +488,23 @@ def feature_importance_plot(model, X_data, output_pth):
     output:
              None
     '''
-    def feature_importance_plot_1(model_data: Dict = None):
-        """
-        Generates a matplotlib bar plot to describe feature importance on
-        X matrix targeting dimensionality reduction to avoid overfitting
-        and decrease model complexity -> Matplotlib backend
-        Parameters
-        ----------
-        model_data: Dict
-            Machine learning model data
-        Returns:
-        --------
-        None
-        
-        Examples:
-        ---------
-            >>> model = mlvc.CreateMlModel('test')
-            >>> model.data_loading('db/data.csv')
-            >>> model.test_train_data_split(test_size= 0.3,random_state= 11)
-            >>> model_data = fit_predict_to_best_estimator(model_name='rfc',model_algorithm='RandomForestClassifier(),param_grid= {data ...},folds= 5)
-            >>> model.feature_importance_plot_1(model_data=model_data)
-        """
-        model_data = kwargs.get('model_data')
-        try:
-            log.info(
-                f'(SUCCESS feature_importance_plot_1) -> Starting process -> kwargs: {kwargs}'
-            )
-            model = model_data['model']
-            importance = model.best_estimator_.feature_importances_
-            indices = np.argsort(importance)[::-1]
-            names = [self.X.columns[i] for i in indices]
-
-            plt.figure(figsize=(20, 5))
-
-            plt.title("Feature Importance")
-            plt.ylabel('Importance')
-            plt.bar(range(self.X.shape[1]), importance[indices])
-            plt.xticks(range(self.X.shape[1]), names, rotation=90)
-            plt.savefig(f'plots/feature_importance/feature_importance_plot1_{model_name}.pdf')
-        except BaseException as exc:
-            log.error(
-                f'(ERROR feature_importance_plot_1) -> Finishing process -> kwargs: {kwargs} -> '
-                f'Exception: {traceback.format_exc()}'
-            )
-            raise FeatureImportancePlot1Error(f'Feature importance 1 could not be processed. kwargs: {kwargs}')
-        log.info(
-            f'(SUCCESS feature_importance_plot_1) -> Starting process -> kwargs: {kwargs}'
-        )
-        return
-
-    def feature_importance_plot_2(model_data: Dict = None):
-        """
-        Generates a matplotlib bar plot to describe feature importance on
-        X matrix targeting dimensionality reduction to avoid overfitting
-        and decrease model complexity -> Shap backend
-        Parameters
-        ----------
-        self: CreateMlModel
-            Create model object data
-        model_data: str
-            Machine learning model data
-        Returns:
-        --------
-        shap: Shap
-            Figure with feature importance information
-        Examples:
-        ---------
-            >>> model = mlvc.CreateMlModel('test')
-            >>> model.data_loading('db/data.csv')
-            >>> model.test_train_data_split(test_size= 0.3,random_state= 11)
-            >>> model_data = fit_predict_to_best_estimator(model_name='rfc',model_algorithm='RandomForestClassifier(),param_grid= {data ...},folds= 5)
-            >>> model.feature_importance_plot_2(model_data=model_data)        """
-        try:
-            log.info(
-                f'(SUCCESS feature_importance_plot_1) -> Starting process -> kwargs: {kwargs}'
-            )
-            model = model_data['model']
-            explainer = shap.TreeExplainer(model.best_estimator_)
-            shap_values = explainer.shap_values(self.X_test)
-            shap.summary_plot(shap_values, self.X_test, plot_type="bar")
-            plt.show()
-        except BaseException as exc:
-            log.error(
-                f'(ERROR feature_importance_plot_2) -> Finishing process -> kwargs: {kwargs} -> '
-                f'Exception: {traceback.format_exc()}'
-            )
-            raise FeatureImportancePlot2Error(f'Feature importance 2 could not be processed. kwargs: {kwargs}')
-        log.info(
-            f'(SUCCESS feature_importance_plot_2) -> Starting process -> kwargs: {kwargs}'
-        )
-    
-    
-    _= feature_importance_plot_1()
-    _= feature_importance_plot_2()
+    model = kwargs.get('model')
+    X_data = kwargs.get('X_data')
+    output_pth = kwargs.get('output_pth')
+    plt_backend = kwargs.get('plt_backend')
     log.info(
         f'(SUCCESS feature_importance) -> Finishing process. Feature importance plots created! -> kwargs: {kwargs}'
         )
-    return 1
-    
+    if plt_backend:
+       return feature_importance_plot_1(model_data: Dict = None) 
+    else:
+       return feature_importance_plot_2(model_data: Dict = None)  
 
-def train_models(X_train, X_test, y_train, y_test):
+
+    
+@perform_feature_engineering
+@encoder_helper
+def train_models(**kwargs):
     '''
     train, store model results: images + scores, and store models
     input:
