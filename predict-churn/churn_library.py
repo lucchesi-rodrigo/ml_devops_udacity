@@ -475,7 +475,6 @@ def create_feature_importance_plot_2(**kwargs):
         f'(SUCCESS feature_importance_plot_2) -> Starting process -> kwargs: {kwargs}'
     )
 
-
 def create_feature_importance_plot(**kwargs):
     '''
     creates and stores the feature importances in pth
@@ -499,20 +498,49 @@ def create_feature_importance_plot(**kwargs):
     else:
        return create_feature_importance_plot_1(x=1)  
 
-
 def train_models(**kwargs):
-    '''
+    """
     train, store model results: images + scores, and store models
     input:
-              X_train: X training data
-              X_test: X testing data
+              x_train: X training data
+              x_test: X testing data
               y_train: y training data
               y_test: y testing data
     output:
               None
-    '''
-    """Add from mlvc!"""
-    return True
+    """
+    is_single_model = kwargs.get('is_single_model')
+    is_linear_model = kwargs.get('is_linear_model')
+    x_train = kwargs.get('x_train')
+    y_train = kwargs.get('y_train')
+    x_test = kwargs.get('x_test')
+    y_test = kwargs.get('y_test')
+
+    if is_single_model + is_linear_model:
+        model = LogisticRegression(max_iter=1000)
+        model.fit(x_train, y_train)
+        y_train_preds_lr = model.predict(x_train)
+        y_test_preds_lr = model.predict(x_test)
+    elif is_single_model + (not is_linear_model):
+        pass
+    elif (not is_single_model) + is_linear_model:
+        pass
+    elif (not is_single_model) + (not is_linear_model):
+        model = RandomForestClassifier(random_state=42)
+        param_grid = {
+            "n_estimators": [200, 500],
+            "max_features": ["auto", "sqrt"],
+            "max_depth": [4, 5, 100],
+            "criterion": ["gini", "entropy"]
+        }
+        model = GridSearchCV(estimator=rfc, param_grid=param_grid, cv=5)
+        model.fit(x_train, y_train)
+        y_train_preds_rf = model.best_estimator_.predict(x_train)
+        y_test_preds_rf = model.best_estimator_.predict(x_test)
+        
+    joblib.dump(model.model, "models/rfc_model.pkl")
+    
+    return 1
     
 if __name__ == '__main__':
     os.system('pytest -s --cov=. tests/')
