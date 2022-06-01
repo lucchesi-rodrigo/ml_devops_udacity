@@ -6,6 +6,7 @@ date: May 2022
 # import libraries
 import os
 import pickle
+import numpy as np
 from datetime import datetime
 import traceback
 import logging as log
@@ -49,7 +50,9 @@ class FeatureEngineeringError(Exception):
 class ClassificationReportImageError(Exception):
     """Custom exception for classification_report_image"""
     pass
-
+class FeatureImportancePlotError(Exception):
+    """Custom exception for create_feature_importance_plot"""
+    pass
 
 def import_data(df_path: str) -> pd.DataFrame:
     """
@@ -388,6 +391,7 @@ def create_feature_importance_plot_1(**kwargs):
     Generates a matplotlib bar plot to describe feature importance on
     X matrix targeting dimensionality reduction to avoid overfitting
     and decrease model complexity -> Matplotlib backend
+    
     Parameters
     ----------
     model_data: Dict
@@ -398,38 +402,35 @@ def create_feature_importance_plot_1(**kwargs):
     
     Examples:
     ---------
-        >>> model = mlvc.CreateMlModel('test')
-        >>> model.data_loading('db/data.csv')
-        >>> model.test_train_data_split(test_size= 0.3,random_state= 11)
-        >>> model_data = fit_predict_to_best_estimator(model_name='rfc',model_algorithm='RandomForestClassifier(),param_grid= {data ...},folds= 5)
-        >>> model.feature_importance_plot_1(model_data=model_data)
+
     """
-    
     try:
-        pass
-        # log.info(
-        #     f'(SUCCESS feature_importance_plot_1) -> Starting process -> kwargs: {kwargs}'
-        # )
-        # model = model_data['model']
-        # importance = model.best_estimator_.feature_importances_
-        # indices = np.argsort(importance)[::-1]
-        # names = [self.X.columns[i] for i in indices]
+        model = kwargs.get('model')
+        X = kwargs.get('X')
+        model_name = kwargs.get('model_name')
+        log.info(
+             f'(SUCCESS feature_importance_plot_1) -> Starting process -> kwargs: {kwargs}'
+        )
+        
+        importance = model.best_estimator_.feature_importances_
+        indices = np.argsort(importance)[::-1]
+        names = [X.columns[i] for i in indices]
 
-        # plt.figure(figsize=(20, 5))
+        plt.figure(figsize=(20, 5))
 
-        # plt.title("Feature Importance")
-        # plt.ylabel('Importance')
-        # plt.bar(range(self.X.shape[1]), importance[indices])
-        # plt.xticks(range(self.X.shape[1]), names, rotation=90)
-        # plt.savefig(f'plots/feature_importance/feature_importance_plot1_{model_name}.pdf')
+        plt.title("Feature Importance")
+        plt.ylabel('Importance')
+        plt.bar(range(X.shape[1]), importance[indices])
+        plt.xticks(range(X.shape[1]), names, rotation=90)
+        plt.savefig(f'plots/feature_importance_plot{model_name}_matplotlib.pdf')
     except BaseException as exc:
         log.error(
             f'(ERROR feature_importance_plot_1) -> Finishing process -> kwargs: {kwargs} -> '
-            f'Exception: {traceback.format_exc()}'
+            f'Exception: {exc}'
         )
-        raise #FeatureImportancePlot1Error(f'Feature importance 1 could not be processed. kwargs: {kwargs}')
+        raise FeatureImportancePlotError(f'Feature importance 1 could not be processed. kwargs: {kwargs}')
     log.info(
-        f'(SUCCESS feature_importance_plot_1) -> Starting process -> kwargs: {kwargs}'
+        f'(SUCCESS feature_importance_plot_1) -> Finishing process -> kwargs: {kwargs}'
     )
     return
 
@@ -446,33 +447,29 @@ def create_feature_importance_plot_2(**kwargs):
         Machine learning model data
     Returns:
     --------
-    shap: Shap
-        Figure with feature importance information
+    None
     Examples:
     ---------
-        >>> model = mlvc.CreateMlModel('test')
-        >>> model.data_loading('db/data.csv')
-        >>> model.test_train_data_split(test_size= 0.3,random_state= 11)
-        >>> model_data = fit_predict_to_best_estimator(model_name='rfc',model_algorithm='RandomForestClassifier(),param_grid= {data ...},folds= 5)
-        >>> model.feature_importance_plot_2(model_data=model_data)        """
+  
+    """
     try:
-        pass
-        # log.info(
-        #     f'(SUCCESS feature_importance_plot_1) -> Starting process -> kwargs: {kwargs}'
-        # )
-        # # model = model_data['model']
-        # # explainer = shap.TreeExplainer(model.best_estimator_)
-        # # shap_values = explainer.shap_values(self.X_test)
-        # # shap.summary_plot(shap_values, self.X_test, plot_type="bar")
-        # plt.show()
+        model = kwargs.get('model')
+        X_test = kwargs.get('X_test')
+        model_name = kwargs.get('model_name')
+        log.info(
+             f'(SUCCESS feature_importance_plot_2) -> Starting process -> kwargs: {kwargs}'
+        )
+        explainer = shap.TreeExplainer(model.best_estimator_)
+        shap_values = explainer.shap_values(X_test)
+        shap.summary_plot(shap_values, X_test, plot_type="bar")
     except BaseException as exc:
         log.error(
             f'(ERROR feature_importance_plot_2) -> Finishing process -> kwargs: {kwargs} -> '
             f'Exception: {exc}'
         )
-        raise #FeatureImportancePlot2Error(f'Feature importance 2 could not be processed. kwargs: {kwargs}')
+        raise FeatureImportancePlotError(f'Feature importance 2 could not be processed. kwargs: {kwargs}')
     log.info(
-        f'(SUCCESS feature_importance_plot_2) -> Starting process -> kwargs: {kwargs}'
+        f'(SUCCESS feature_importance_plot_2) -> Finishing process -> kwargs: {kwargs}'
     )
 
 def create_feature_importance_plot(**kwargs):
@@ -487,28 +484,47 @@ def create_feature_importance_plot(**kwargs):
              None
     '''
     model = kwargs.get('model')
-    X_data = kwargs.get('X_data')
-    output_pth = kwargs.get('output_pth')
-    plt_backend = kwargs.get('plt_backend')
+    model_name = kwargs.get('model_name')
+    X = kwargs.get('X')
+    X_test = kwargs.get('X_test')
+    matplot_backend = kwargs.get('matplot_backend')
     log.info(
         f'(SUCCESS feature_importance) -> Finishing process. Feature importance plots created! -> kwargs: {kwargs}'
         )
-    if plt_backend:
-       return create_feature_importance_plot_1(x=1) 
+    if matplot_backend:
+       return create_feature_importance_plot_1(
+            model=model,
+            X=X,
+            model_name=model_name
+       ) 
     else:
-       return create_feature_importance_plot_1(x=1)  
+       return create_feature_importance_plot_2(
+            model=model,
+            X_test=X_test,
+            model_name=model_name
+       )  
 
 def train_models(**kwargs):
-    """
-    train, store model results: images + scores, and store models
-    input:
-              x_train: X training data
-              x_test: X testing data
-              y_train: y training data
-              y_test: y testing data
-    output:
-              None
-    """
+    '''
+    Method to perform fit-train execution.
+
+    Keyword Arguments:
+    ------------------
+        is_single_model: bool
+            Flag to inform a single or emsembled algorithm
+        is_linear_model: bool
+            Flag to inform a linear or non-linear model
+        X_train: pd.DataFrame
+            Train matrix 
+        X_test: pd.DataFrame
+            Test matrix 
+        y_train: Union[pd.DataFrame,pd.Series]
+            Target train matrix 
+        
+    Returns:
+    --------
+        None
+    '''
     is_single_model = kwargs.get('is_single_model')
     is_linear_model = kwargs.get('is_linear_model')
     x_train = kwargs.get('x_train')
@@ -519,8 +535,9 @@ def train_models(**kwargs):
     if is_single_model + is_linear_model:
         model = LogisticRegression(max_iter=1000)
         model.fit(x_train, y_train)
-        y_train_preds_lr = model.predict(x_train)
-        y_test_preds_lr = model.predict(x_test)
+        y_train_preds = model.predict(x_train)
+        y_test_preds = model.predict(x_test)
+        model_name = 'logistic_regression'
     elif is_single_model + (not is_linear_model):
         pass
     elif (not is_single_model) + is_linear_model:
@@ -535,12 +552,18 @@ def train_models(**kwargs):
         }
         model = GridSearchCV(estimator=rfc, param_grid=param_grid, cv=5)
         model.fit(x_train, y_train)
-        y_train_preds_rf = model.best_estimator_.predict(x_train)
-        y_test_preds_rf = model.best_estimator_.predict(x_test)
-        
-    joblib.dump(model.model, "models/rfc_model.pkl")
+        y_train_preds = model.best_estimator_.predict(x_train)
+        y_test_preds = model.best_estimator_.predict(x_test)
+        model_name = 'random_forest'
+
+    ml_data = (model_name,model,y_train_preds,y_test_preds) 
+
+    with open('models/model_name.pkl', 'wb') as handle:
+        pickle.dump(ml_data, handle, protocol=pickle.HIGHEST_PROTOCOL)
     
-    return 1
+    return 
     
 if __name__ == '__main__':
-    os.system('pytest -s --cov=. tests/')
+    unit_test = 1
+    if unit_test:
+        os.system('pytest -s --cov=. tests/')
