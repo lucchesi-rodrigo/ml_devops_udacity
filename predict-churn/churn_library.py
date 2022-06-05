@@ -388,21 +388,20 @@ def create_classification_report_image(**kwargs):
 
 def create_feature_importance_plot_1(**kwargs):
     """
-    Generates a matplotlib bar plot to describe feature importance on
-    X matrix targeting dimensionality reduction to avoid overfitting
-    and decrease model complexity -> Matplotlib backend
-    
-    Parameters
+    Generates the plot using matplitlib backend.
+
+    Keyword arguments
     ----------
-    model_data: Dict
-        Machine learning model data
+    model: str
+        Model fitted to analyzed the feature importance
+    model_name: str
+        Model name to store information
+    X: pd.DataFrame
+        X matrif for the machine learning run
+    
     Returns:
     --------
     None
-    
-    Examples:
-    ---------
-
     """
     try:
         model = kwargs.get('model')
@@ -436,28 +435,27 @@ def create_feature_importance_plot_1(**kwargs):
 
 def create_feature_importance_plot_2(**kwargs):
     """
-    Generates a matplotlib bar plot to describe feature importance on
-    X matrix targeting dimensionality reduction to avoid overfitting
-    and decrease model complexity -> Shap backend
-    Parameters
+    Generates the plot using matplitlib backend.
+
+    Keyword arguments
     ----------
-    self: CreateMlModel
-        Create model object data
-    model_data: str
-        Machine learning model data
+    model: str
+        Model fitted to analyzed the feature importance
+    model_name: str
+        Model name to store information
+    X_test: pd.DataFrame
+        X test matrix to validate model performance
+
     Returns:
     --------
     None
-    Examples:
-    ---------
-  
     """
     try:
         model = kwargs.get('model')
         X_test = kwargs.get('X_test')
         model_name = kwargs.get('model_name')
         log.info(
-             f'(SUCCESS feature_importance_plot_2) -> Starting process -> kwargs: {kwargs}'
+             f'(SUCCESS feature_importance_plot_2) -> Starting process -> kwargs: {kwargs} ->'
         )
         explainer = shap.TreeExplainer(model.best_estimator_)
         shap_values = explainer.shap_values(X_test)
@@ -473,39 +471,54 @@ def create_feature_importance_plot_2(**kwargs):
     )
 
 def create_feature_importance_plot(**kwargs):
-    '''
-    creates and stores the feature importances in pth
-    input:
-            model: model object containing feature_importances_
-            X_data: pandas dataframe of X values
-            output_pth: path to store the figure
+    """
+    Generates a matplotlib bar plot to describe feature importance on
+    X matrix targeting dimensionality reduction to avoid overfitting
+    and decrease model complexity.There are two backend to generate the plots:
+     - matplotlib
+     - shap
 
-    output:
-             None
-    '''
+    Keyword arguments
+    ----------
+    model: str
+        Model fitted to analyzed the feature importance
+    model_name: str
+        Model name to store information
+    X: pd.DataFrame
+        X matrif for the machine learning run
+    X_test: pd.DataFrame
+        X test matrix to validate model performance
+    matplotlib_backend: bool
+        Flag to decide which backend to use on plotting
+    
+    Returns:
+    --------
+    None
+    """
     model = kwargs.get('model')
     model_name = kwargs.get('model_name')
     X = kwargs.get('X')
     X_test = kwargs.get('X_test')
-    matplot_backend = kwargs.get('matplot_backend')
+    matplotlib_backend = kwargs.get('matplot_backend')
     log.info(
-        f'(SUCCESS feature_importance) -> Finishing process. Feature importance plots created! -> kwargs: {kwargs}'
+        f'(SUCCESS feature_importance) -> Starting feature importance plots! -> kwargs: {kwargs}'
         )
-    if matplot_backend:
-       return create_feature_importance_plot_1(
+    if matplotlib_backend:
+        create_feature_importance_plot_1(
             model=model,
             X=X,
             model_name=model_name
        ) 
     else:
-       return create_feature_importance_plot_2(
+        create_feature_importance_plot_2(
             model=model,
             X_test=X_test,
             model_name=model_name
-       )  
+       )
+    return
 
 def train_models(**kwargs):
-    '''
+    """
     Method to perform fit-train execution.
 
     Keyword Arguments:
@@ -514,9 +527,9 @@ def train_models(**kwargs):
             Flag to inform a single or emsembled algorithm
         is_linear_model: bool
             Flag to inform a linear or non-linear model
-        X_train: pd.DataFrame
+        x_train: pd.DataFrame
             Train matrix 
-        X_test: pd.DataFrame
+        x_test: pd.DataFrame
             Test matrix 
         y_train: Union[pd.DataFrame,pd.Series]
             Target train matrix 
@@ -524,13 +537,12 @@ def train_models(**kwargs):
     Returns:
     --------
         None
-    '''
+    """
     is_single_model = kwargs.get('is_single_model')
     is_linear_model = kwargs.get('is_linear_model')
     x_train = kwargs.get('x_train')
     y_train = kwargs.get('y_train')
     x_test = kwargs.get('x_test')
-    y_test = kwargs.get('y_test')
 
     if is_single_model + is_linear_model:
         model = LogisticRegression(max_iter=1000)
@@ -550,10 +562,10 @@ def train_models(**kwargs):
             "max_depth": [4, 5, 100],
             "criterion": ["gini", "entropy"]
         }
-        model = GridSearchCV(estimator=rfc, param_grid=param_grid, cv=5)
-        model.fit(x_train, y_train)
-        y_train_preds = model.best_estimator_.predict(x_train)
-        y_test_preds = model.best_estimator_.predict(x_test)
+        best_model = GridSearchCV(estimator=model, param_grid=param_grid, cv=5)
+        best_model.fit(x_train, y_train)
+        y_train_preds = best_model.best_estimator_.predict(x_train)
+        y_test_preds = best_model.best_estimator_.predict(x_test)
         model_name = 'random_forest'
 
     ml_data = (model_name,model,y_train_preds,y_test_preds) 
